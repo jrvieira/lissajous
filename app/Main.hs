@@ -13,14 +13,14 @@ main = play (InWindow "mach sim" (join (,) $ round size) (0,0)) (makeColorI 0 0 
 render :: State -> Picture
 render (State δ pos) = Pictures [tx,ty,tr,curve]
    where
-   (x,y) = join bimap (succ . round . (/ (size / steps)) . (+ size/2)) pos
+   (x,y) = join bimap (succ . round . (/ (size * 2 / steps)) . (+ size)) pos
    (x',y') = join bimap fromIntegral (x,y)
-   tx = translate 0 (-size/2) $ color white $ scale 0.1 0.1 $ text $ show x
-   ty = translate (-size/2) 0 $ color white $ scale 0.1 0.1 $ text $ show y
-   tr = translate (-size/2) (-size/2) $ color white $ scale 0.1 0.1 $ text $ show (div y $ gcd x y) <> ":" <> show (div x $ gcd x y)
+   tx = translate 0 -size $ color white $ scale 0.1 0.1 $ text $ show x
+   ty = translate -size 0 $ color white $ scale 0.1 0.1 $ text $ show y
+   tr = translate -size -size $ color white $ scale 0.1 0.1 $ text $ show (div y $ gcd x y) <> ":" <> show (div x $ gcd x y)
    curve = color (makeColor 0 1 0 intensity) $ lineLoop $ zip xs ys
-   xs = (* (zoom * size/2)) . sin . (* x') . (- δ * sc) <$> [0,res..2*pi]
-   ys = (* (zoom * size/2)) . cos . (* y') . (+ δ * sc) <$> [0,res..2*pi]
+   xs = (* zoom) . sin . (* x') . (- δ * sc) <$> [0,res..2*pi]
+   ys = (* zoom) . cos . (* y') . (+ δ * sc) <$> [0,res..2*pi]
    sc = 1 / fromIntegral (lcm x y)  -- speed coefficient (slow down more complex shapes)
 
 catch :: Event -> State -> State
@@ -30,17 +30,17 @@ catch _ s = s
 step :: Float -> State -> State
 step _ (State δ pos) = State (δ + speed) pos
 
--- size of canvas in pixels
+-- size of quadrant in pixels
 size :: Float
-size = 200
+size = 100
 
 -- line resolution (lower is better)
 res :: Float
 res = 1/90
 
--- curve size as ratio of canvas
+-- curve size
 zoom :: Float
-zoom = 0.7
+zoom = 0.7 * size
 
 -- x/y cycles
 steps :: Float

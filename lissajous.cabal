@@ -1,12 +1,10 @@
 cabal-version: 3.0
 name: lissajous
 version: 0.1.0.0
-license: MIT
-license-file: LICENSE
+license: GNU
 author: jrvieira
 maintainer: github@jrvieira.com
 build-type: Simple
-extra-doc-files: CHANGELOG.md
 
 common warnings
    ghc-options: -O2 -threaded -rtsopts -Wall
