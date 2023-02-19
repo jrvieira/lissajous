@@ -8,7 +8,7 @@ import Graphics.Gloss.Interface.IO.Interact
 data State = State Float (Float,Float)
 
 main :: IO ()
-main = play (InWindow "mach sim" (join (,) $ round size) (0, 0)) (makeColorI 0 0 0 0) fps (State 0 (0.0,0.0)) render catch step
+main = play (InWindow "mach sim" (join (,) $ round size) (0,0)) (makeColorI 0 0 0 0) fps (State 0 (0,0)) render catch step
 
 render :: State -> Picture
 render (State δ pos) = Pictures [tx,ty,tr,curve]
@@ -19,8 +19,9 @@ render (State δ pos) = Pictures [tx,ty,tr,curve]
    ty = translate (-size/2) 0 $ color white $ scale 0.1 0.1 $ text $ show y
    tr = translate (-size/2) (-size/2) $ color white $ scale 0.1 0.1 $ text $ show (div y $ gcd x y) <> ":" <> show (div x $ gcd x y)
    curve = color (makeColor 0 1 0 intensity) $ lineLoop $ zip xs ys
-   xs = (* (zoom * size/2)) . sin . (* x') . (- (δ / max x' y')) <$> [0,res..2*pi]
-   ys = (* (zoom * size/2)) . cos . (* y') . (+ (δ / max x' y')) <$> [0,res..2*pi]
+   xs = (* (zoom * size/2)) . sin . (* x') . (- δ * sq) <$> [0,res..2*pi]
+   ys = (* (zoom * size/2)) . cos . (* y') . (+ δ * sq) <$> [0,res..2*pi]
+   sq = 1 / fromIntegral (lcm x y)  -- speed coefficient (slow down more complex shapes)
 
 catch :: Event -> State -> State
 catch (EventMotion pos) (State δ _) = State δ pos
@@ -48,7 +49,7 @@ steps = 9
 fps :: Int
 fps = 30
 
--- animation speed (rotation per frame in radians)
+-- rotation per frame in radians (lower is slower)
 speed :: Float
 speed = 1/100
 
