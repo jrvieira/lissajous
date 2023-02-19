@@ -5,13 +5,10 @@ import Control.Monad ( join )
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Interact
 
-main :: IO ()
-main = play (InWindow "mach sim" (join (,) $ round size) (0, 0)) (makeColorI 0 0 0 0) fps state render catch step
-
 data State = State Float (Float,Float)
 
-state :: State
-state = State 0 (0.0,0.0)
+main :: IO ()
+main = play (InWindow "mach sim" (join (,) $ round size) (0, 0)) (makeColorI 0 0 0 0) fps (State 0 (0.0,0.0)) render catch step
 
 render :: State -> Picture
 render (State δ pos) = Pictures [tx,ty,tr,curve]
@@ -21,7 +18,7 @@ render (State δ pos) = Pictures [tx,ty,tr,curve]
    tx = translate 0 (-size/2) $ color white $ scale 0.1 0.1 $ text $ show x
    ty = translate (-size/2) 0 $ color white $ scale 0.1 0.1 $ text $ show y
    tr = translate (-size/2) (-size/2) $ color white $ scale 0.1 0.1 $ text $ show (div y $ gcd x y) <> ":" <> show (div x $ gcd x y)
-   curve = color (makeColor 0 1 0 intensity) $ line $ zip xs ys
+   curve = color (makeColor 0 1 0 intensity) $ lineLoop $ zip xs ys
    xs = (* (zoom * size/2)) . sin . (* x') . (- (δ / max x' y')) <$> [0,res..2*pi]
    ys = (* (zoom * size/2)) . cos . (* y') . (+ (δ / max x' y')) <$> [0,res..2*pi]
 
@@ -38,7 +35,7 @@ size = 200
 
 -- line resolution (lower is better)
 res :: Float
-res = 1/100
+res = 1/90
 
 -- curve size as ratio of canvas
 zoom :: Float
