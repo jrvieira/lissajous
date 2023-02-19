@@ -19,9 +19,9 @@ render (State δ pos) = Pictures [tx,ty,tr,curve]
    ty = translate (-size/2) 0 $ color white $ scale 0.1 0.1 $ text $ show y
    tr = translate (-size/2) (-size/2) $ color white $ scale 0.1 0.1 $ text $ show (div y $ gcd x y) <> ":" <> show (div x $ gcd x y)
    curve = color (makeColor 0 1 0 intensity) $ lineLoop $ zip xs ys
-   xs = (* (zoom * size/2)) . sin . (* x') . (- δ * sq) <$> [0,res..2*pi]
-   ys = (* (zoom * size/2)) . cos . (* y') . (+ δ * sq) <$> [0,res..2*pi]
-   sq = 1 / fromIntegral (lcm x y)  -- speed coefficient (slow down more complex shapes)
+   xs = (* (zoom * size/2)) . sin . (* x') . (- δ * sc) <$> [0,res..2*pi]
+   ys = (* (zoom * size/2)) . cos . (* y') . (+ δ * sc) <$> [0,res..2*pi]
+   sc = 1 / fromIntegral (lcm x y)  -- speed coefficient (slow down more complex shapes)
 
 catch :: Event -> State -> State
 catch (EventMotion pos) (State δ _) = State δ pos
