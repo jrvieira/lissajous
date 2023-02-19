@@ -1,7 +1,7 @@
 cabal-version: 3.0
 name: lissajous
 version: 0.1.0.0
-license: GNU
+license: MIT
 author: jrvieira
 maintainer: github@jrvieira.com
 build-type: Simple
