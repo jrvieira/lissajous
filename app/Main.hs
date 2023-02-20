@@ -5,55 +5,47 @@ import Control.Monad ( join )
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Interact
 
-data State = State Float (Float,Float)
+import Conf
+
+data State = State { time :: Float , crt :: [Dot] , input :: (Word,Word) }
+
+type Dot = (Float,Float)
 
 main :: IO ()
-main = play (InWindow "mach sim" (join (,) $ round size * 2) (0,0)) (makeColorI 0 0 0 0) fps (State 0 (0,0)) render catch step
+main = play (InWindow "lissajous" (join (,) $ round size * 2) (0,0)) (makeColorI 0 0 0 0) fps (State 0 [] (1,1)) render catch step
 
 render :: State -> Picture
-render (State δ pos) = Pictures [tx,ty,tr,curve]
+render (State _ ds (x,y)) = Pictures (bg:tx:ty:tr:curve)
    where
-   (x,y) = join bimap (succ . round . (/ (size * 2 / steps)) . (+ size)) pos
-   (x',y') = join bimap fromIntegral (x,y)
-   tx = translate 0 -size $ color white $ scale 0.1 0.1 $ text $ show x
-   ty = translate -size 0 $ color white $ scale 0.1 0.1 $ text $ show y
-   tr = translate -size -size $ color white $ scale 0.1 0.1 $ text $ show (div y $ gcd x y) <> ":" <> show (div x $ gcd x y)
-   curve = color (makeColor 0 1 0 intensity) $ lineLoop $ zip xs ys
-   xs = (* zoom) . sin . (* x') . (- δ * sc) <$> [0,res..2*pi]
-   ys = (* zoom) . cos . (* y') . (+ δ * sc) <$> [0,res..2*pi]
-   sc = 1 / fromIntegral (lcm x y)  -- speed coefficient (slow down more complex shapes)
+   bg = translate -size -size $ color (makeColor 0 1 0 0.2) $ polygon [(0,0),(0,size * 2),(size * 2,size * 2),(size * 2,0)]
+   tx = translate 0 -size $ color (makeColor 1 1 1 0.2) $ scale 0.06 0.06 $ text $ show x
+   ty = translate -size 0 $ color (makeColor 1 1 1 0.2) $ scale 0.06 0.06 $ text $ show y
+   tr = translate -size -size $ color (makeColor 1 1 1 0.2) $ scale 0.06 0.06 $ text $ show (div y $ gcd x y) <> ":" <> show (div x $ gcd x y)
+   curve = zipWith dot ds [1,1-1/(points)..0]
+
+   ease v = 2 ** (10 * v - 10)
+
+   dot :: (Float,Float) -> Float -> Picture
+   dot pos i = Pictures $ uncurry translate pos <$>
+      [ color (makeColor 1 1 1 i) $ circleSolid 1.2
+      , color (makeColor 1 1 1 (ease $ ease i)) $ circleSolid 3
+      ]
 
 catch :: Event -> State -> State
-catch (EventMotion pos) (State δ _) = State δ pos
+catch (EventMotion xy) st@(State δ _ p)
+   | p == p' = st
+   | otherwise = State δ [] p'
+   where
+   p' = join bimap (max 1 . round . (/ (size * 2 / steps)) . (+ size)) xy
 catch _ s = s
 
 step :: Float -> State -> State
-step _ (State δ pos) = State (δ + speed) pos
+step _ (State δ ds (x,y)) = State (δ + speed) ds' (x,y)
+   where
+   ds' = join bimap (* zoom) (x',y') : ds
+   x' = sin $ fromIntegral x * δ + δ/60
+   y' = cos $ fromIntegral y * δ - δ/60
+   sc = 1 / fromIntegral (max 1 $ lcm x y)  -- speed coefficient (slow down more complex shapes)
 
--- size of quadrant in pixels
-size :: Float
-size = 100
-
--- line resolution (lower is better)
-res :: Float
-res = 1/90
-
--- curve size
-zoom :: Float
-zoom = 0.7 * size
-
--- x/y cycles
-steps :: Float
-steps = 9
-
-fps :: Int
-fps = 30
-
--- rotation per frame in radians (lower is slower)
-speed :: Float
-speed = 1/100
-
--- line brightness
-intensity :: Float
-intensity = 0.2
-
+points :: Float
+points = 2 * pi / res
