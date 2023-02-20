@@ -8,7 +8,7 @@ import Graphics.Gloss.Interface.IO.Interact
 data State = State Float (Float,Float)
 
 main :: IO ()
-main = play (InWindow "mach sim" (join (,) $ round size) (0,0)) (makeColorI 0 0 0 0) fps (State 0 (0,0)) render catch step
+main = play (InWindow "mach sim" (join (,) $ round size * 2) (0,0)) (makeColorI 0 0 0 0) fps (State 0 (0,0)) render catch step
 
 render :: State -> Picture
 render (State δ pos) = Pictures [tx,ty,tr,curve]
