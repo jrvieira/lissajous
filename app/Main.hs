@@ -38,9 +38,11 @@ render :: State -> Picture
 render st = Pictures [tx,ty,tr,curve,sx,sy]
    where
    (x,y :: Word) = φ st
+
    tx = translate  -size      -size       $ color white $ scale 0.07 0.07 $ text $ show x
    ty = translate (-size * 2)  0          $ color white $ scale 0.07 0.07 $ text $ show y
    tr = translate (-size * 2) -size       $ color white $ scale 0.07 0.07 $ text $ show (div y $ gcd x y) <> ":" <> show (div x $ gcd x y)
+
    curve = translate -size 0 $ color (makeColor 0 1 0 (β st)) $ lineLoop $ zip xs ys
    xs = (* (α st * size)) . fun . (* fromIntegral x) . (- δ st * sc) <$> init [0,2*pi / fromIntegral res..2*pi]
    ys = (* (α st * size)) . fun . (* fromIntegral y) . (+ δ st * sc) <$> init [0,2*pi / fromIntegral res..2*pi]
@@ -50,8 +52,8 @@ render st = Pictures [tx,ty,tr,curve,sx,sy]
    sc | κ st = 1 / fromIntegral (lcm x y)
       | otherwise = 1  -- speed coefficient (slow down more complex shapes)
 
-   sx = translate 0 0 $ color (makeColor 1 0.5 0 (β st)) $ line $ zip [0,2 * size / fromIntegral res..] xs
-   sy = translate 0 0 $ color (makeColor 0 0.5 1 (β st)) $ line $ zip [0,2 * size / fromIntegral res..] ys
+   sx = translate 0 0 $ color (makeColor 1 0.5 0 0.9) $ line $ zip [0,2 * size / fromIntegral res..] xs
+   sy = translate 0 0 $ color (makeColor 0 0.5 1 0.9) $ line $ zip [0,2 * size / fromIntegral res..] ys
 
    fun
       | Sine <- ω st = sin
