@@ -20,7 +20,7 @@ state :: State
 state = State
    { δ = 0
    , φ = (1,1)
-   , σ = 1/100
+   , σ = 0
    , ρ = 16
    , α = 7/10
    , β = 0.2
@@ -52,8 +52,8 @@ render st = Pictures [tx,ty,tr,curve,sx,sy]
    sc | κ st = 1 / fromIntegral (lcm x y)
       | otherwise = 1  -- speed coefficient (slow down more complex shapes)
 
-   sx = translate 0 0 $ color (makeColor 1 0.5 0 0.9) $ line $ zip [0,2 * size / fromIntegral res..] xs
-   sy = translate 0 0 $ color (makeColor 0 0.5 1 0.9) $ line $ zip [0,2 * size / fromIntegral res..] ys
+   sx = translate 0 0 $ color (makeColor 1 0.5 0 0.4) $ line $ zip [0,2 * size / fromIntegral res..] xs
+   sy = translate 0 0 $ color (makeColor 0 0.5 1 0.4) $ line $ zip [0,2 * size / fromIntegral res..] ys
 
    fun
       | Sine <- ω st = sin
@@ -64,7 +64,7 @@ render st = Pictures [tx,ty,tr,curve,sx,sy]
 catch :: Event -> State -> State
 -- catch (EventMotion c) st = st { ξ = c }
 catch (EventKey k Down _ _) st
-   | Char '0' <- k = state { φ = φ st , ω = ω st }
+   | Char '0' <- k = state { φ = φ st , ω = ω st , σ = σ st }
    | Char 'x' <- k = st { φ = let (x,y) = φ st in (min maxBound $ succ x,y) }
    | Char 'X' <- k = st { φ = let (x,y) = φ st in (max 1 $ pred x,y) }
    | Char 'y' <- k = st { φ = let (x,y) = φ st in (x,min maxBound $ succ y) }
