@@ -14,7 +14,7 @@ executable lissajous
    main-is: Main.hs
 -- other-modules:
 -- other-extensions:
-   build-depends: base ^>=4.17.0.0
+   build-depends: base
       , gloss
 
    hs-source-dirs: app

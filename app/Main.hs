@@ -4,6 +4,14 @@ import Data.Fixed ( mod')
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Interact
 
+data Wave = Sine | Square | Triangle | Saw
+
+fun :: Wave -> Float -> Float
+fun Sine = sin
+fun Square = \v' -> let v = abs $ mod' v' pi in if v < pi / 2 then 1 else -1
+fun Triangle = \v' -> let v = abs $ mod' v' (2*pi) in if v < pi then 2 * (v / pi - 1) + 1 else -2 * (v / pi - 1) + 1
+fun Saw = \v' -> let v = abs $ mod' v' (2*pi) in v / pi - 1
+
 data State = State
    { δ :: Float  -- radian time
    , φ :: (Word,Word)  -- input frequencies
@@ -12,7 +20,7 @@ data State = State
    , α :: Float  -- amplitude
    , β :: Float  -- brightness
    , γ :: Float  -- rational grid
-   , ω :: Waveform
+   , ω :: Wave
    , κ :: Bool  -- sc
    }
 
@@ -29,8 +37,6 @@ state = State
    , κ = False
    }
 
-data Waveform = Sine | Square | Triangle | Saw
-
 main :: IO ()
 main = play (InWindow "mach sim" (round $ size * 4,round $ size * 2) (0,0)) (makeColorI 0 0 0 0) fps state render catch step
 
@@ -39,27 +45,21 @@ render st = Pictures [tx,ty,tr,curve,sx,sy]
    where
    (x,y :: Word) = φ st
 
-   tx = translate  -size      -size       $ color white $ scale 0.07 0.07 $ text $ show x
-   ty = translate (-size * 2)  0          $ color white $ scale 0.07 0.07 $ text $ show y
-   tr = translate (-size * 2) -size       $ color white $ scale 0.07 0.07 $ text $ show (div y $ gcd x y) <> ":" <> show (div x $ gcd x y)
+   tx = translate  -size      -size $ color white $ scale 0.07 0.07 $ text $ show x
+   ty = translate (-size * 2)  0    $ color white $ scale 0.07 0.07 $ text $ show y
+   tr = translate (-size * 2) -size $ color white $ scale 0.07 0.07 $ text $ show (div y $ gcd x y) <> ":" <> show (div x $ gcd x y)
 
    curve = translate -size 0 $ color (makeColor 0 1 0 (β st)) $ lineLoop $ zip xs ys
-   xs = (* (α st * size)) . fun . (* fromIntegral x) . (- δ st * sc) <$> init [0,2*pi / fromIntegral res..2*pi]
-   ys = (* (α st * size)) . fun . (* fromIntegral y) . (+ δ st * sc) <$> init [0,2*pi / fromIntegral res..2*pi]
-   --    ^scale                    ^periods             ^rotation
+   xs = (* (α st * size)) . fun (ω st) . (* fromIntegral x) . (- δ st * sc) <$> init [0,2*pi / fromIntegral res..2*pi]
+   ys = (* (α st * size)) . fun (ω st) . (* fromIntegral y) . (+ δ st * sc) <$> init [0,2*pi / fromIntegral res..2*pi]
+   --    ^scale                           ^periodicity         ^rotation
 
-   res = ρ st ^ 2  -- resolution multiplier
+   res = ρ st ^ 2  -- resolution coefficient
    sc | κ st = 1 / fromIntegral (lcm x y)
       | otherwise = 1  -- speed coefficient (slow down more complex shapes)
 
    sx = translate 0 0 $ color (makeColor 1 0.5 0 0.4) $ line $ zip [0,2 * size / fromIntegral res..] xs
    sy = translate 0 0 $ color (makeColor 0 0.5 1 0.4) $ line $ zip [0,2 * size / fromIntegral res..] ys
-
-   fun
-      | Sine <- ω st = sin
-      | Square <- ω st = \v' -> let v = abs $ mod' v' pi in if v < pi / 2 then 1 else -1
-      | Triangle <- ω st = \v' -> let v = abs $ mod' v' (2*pi) in if v < pi then 2 * (v / pi - 1) + 1 else -2 * (v / pi - 1) + 1
-      | Saw <- ω st = \v' -> let v = abs $ mod' v' (2*pi) in v / pi - 1
 
 catch :: Event -> State -> State
 -- catch (EventMotion c) st = st { ξ = c }
@@ -96,3 +96,4 @@ size = 100
 
 fps :: Int
 fps = 30
+
