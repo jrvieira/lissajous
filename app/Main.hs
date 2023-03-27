@@ -1,7 +1,8 @@
 module Main where
 
 import Data.Fixed ( mod' )
-import Graphics.Gloss.Interface.IO.Game
+import Graphics.Gloss
+import Graphics.Gloss.Interface.IO.Interact
 
 data Wave = Sine | Square | Triangle | Saw
 
@@ -37,16 +38,7 @@ state = State
    }
 
 main :: IO ()
-main = playIO (InWindow "mach sim" (round $ size * 4,round $ size * 2) (0,0)) (makeColorI 0 0 0 0) fps state renderIO catchIO stepIO
-
-renderIO :: State -> IO Picture
-renderIO s = pure $ render s
-
-catchIO :: Event -> State -> IO State
-catchIO e s = pure $ catch e s
-
-stepIO :: Float -> State -> IO State
-stepIO i s = pure $ step i s
+main = play (InWindow "mach sim" (round $ size * 4,round $ size * 2) (0,0)) (makeColorI 0 0 0 0) fps state render catch step
 
 render :: State -> Picture
 render st = Pictures [tx,ty,tr,curve,sx,sy]
