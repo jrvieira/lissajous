@@ -16,6 +16,7 @@ executable lissajous
 -- other-extensions:
    build-depends: base
       , gloss
+      , synthesizer-core
 
    hs-source-dirs: app
    default-language: Haskell2010

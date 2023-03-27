@@ -1,8 +1,7 @@
 module Main where
 
-import Data.Fixed ( mod')
-import Graphics.Gloss
-import Graphics.Gloss.Interface.IO.Interact
+import Data.Fixed ( mod' )
+import Graphics.Gloss.Interface.IO.Game
 
 data Wave = Sine | Square | Triangle | Saw
 
@@ -38,7 +37,16 @@ state = State
    }
 
 main :: IO ()
-main = play (InWindow "mach sim" (round $ size * 4,round $ size * 2) (0,0)) (makeColorI 0 0 0 0) fps state render catch step
+main = playIO (InWindow "mach sim" (round $ size * 4,round $ size * 2) (0,0)) (makeColorI 0 0 0 0) fps state renderIO catchIO stepIO
+
+renderIO :: State -> IO Picture
+renderIO s = pure $ render s
+
+catchIO :: Event -> State -> IO State
+catchIO e s = pure $ catch e s
+
+stepIO :: Float -> State -> IO State
+stepIO i s = pure $ step i s
 
 render :: State -> Picture
 render st = Pictures [tx,ty,tr,curve,sx,sy]
@@ -54,7 +62,7 @@ render st = Pictures [tx,ty,tr,curve,sx,sy]
    ys = (* (α st * size)) . fun (ω st) . (* fromIntegral y) . (+ δ st * sc) <$> init [0,2*pi / fromIntegral res..2*pi]
    --    ^scale                           ^periodicity         ^rotation
 
-   res = ρ st ^ 2  -- resolution coefficient
+   res = ρ st ^ (2 :: Word) -- resolution coefficient
    sc | κ st = 1 / fromIntegral (lcm x y)
       | otherwise = 1  -- speed coefficient (slow down more complex shapes)
 
